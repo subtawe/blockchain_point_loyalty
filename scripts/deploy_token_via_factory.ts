@@ -1,7 +1,7 @@
 import { reportDeploymentError, runPointDeployment } from "./runPointDeployment.js";
 
 await runPointDeployment({
-    factoryContract: "NewPointTokenFactory",
+    factoryContract: "PointTokenFactory",
     name: "TestPoint",
     symbol: "TP",
 }).catch(reportDeploymentError);

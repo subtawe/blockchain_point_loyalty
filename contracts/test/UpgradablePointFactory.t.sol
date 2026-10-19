@@ -4,7 +4,7 @@ pragma solidity ^0.8.28;
 import "forge-std/Test.sol";
 import "../UpgradablePointFactory.sol";
 import "../test/UpgradablePointFactoryV2.sol";
-import {INewPointToken} from "../interfaces/INewPointToken.sol";
+import {IPointToken} from "../interfaces/IPointToken.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract UpgradablePointFactoryTest is Test {
@@ -40,18 +40,18 @@ contract UpgradablePointFactoryTest is Test {
         address newToken = factory.deployPointToken("Test", "TST");
         assertEq(factory.getDeployedTokensCount(), 1);
         assertEq(factory.deployedTokens(0), newToken);
-        NewPointToken token = NewPointToken(newToken);
+        PointToken token = PointToken(newToken);
         assertEq(token.owner(), owner);
-        assertEq(uint256(token.state()), uint256(INewPointToken.State.Draft));
+        assertEq(uint256(token.state()), uint256(IPointToken.State.Draft));
         assertEq(token.totalSupply(), 0);
         assertEq(token.balanceOf(owner), 0);
     }
 
     function test_Upgrade() public {
-        NewPointToken token = NewPointToken(factory.deployPointToken("First", "ONE"));
+        PointToken token = PointToken(factory.deployPointToken("First", "ONE"));
         uint256 start = block.timestamp;
         uint256 expiry = start + 1 days;
-        token.configureBusiness(INewPointToken.Business.A, abi.encode(start, expiry));
+        token.configureBusiness(IPointToken.Business.A, abi.encode(start, expiry));
         token.mint(user1, 1000, keccak256("upgrade-issue"));
         bytes32 originalCodeHash = address(token).codehash;
         UpgradablePointFactoryV2 implementationV2 = new UpgradablePointFactoryV2();
@@ -72,10 +72,10 @@ contract UpgradablePointFactoryTest is Test {
         assertEq(token.startDate(), start);
         assertEq(token.expireDate(), expiry);
         assertEq(token.balanceOf(user1), 1000);
-        NewPointToken second = NewPointToken(factoryV2.deployPointToken("Second", "TWO"));
+        PointToken second = PointToken(factoryV2.deployPointToken("Second", "TWO"));
         assertEq(factoryV2.getDeployedTokensCount(), 2);
         assertEq(factoryV2.deployedTokens(0), address(token));
-        assertEq(uint256(second.state()), uint256(INewPointToken.State.Draft));
+        assertEq(uint256(second.state()), uint256(IPointToken.State.Draft));
         assertEq(second.totalSupply(), 0);
     }
 
@@ -109,16 +109,16 @@ contract UpgradablePointFactoryTest is Test {
     }
 
     function test_ConfigurationFailurePreservesDraftRegistryAndSupply() public {
-        NewPointToken token = NewPointToken(factory.deployPointToken("Draft", "DFT"));
-        vm.expectRevert(INewPointToken.InvalidDateRange.selector);
-        token.configureBusiness(INewPointToken.Business.A, abi.encode(block.timestamp, block.timestamp));
+        PointToken token = PointToken(factory.deployPointToken("Draft", "DFT"));
+        vm.expectRevert(IPointToken.InvalidDateRange.selector);
+        token.configureBusiness(IPointToken.Business.A, abi.encode(block.timestamp, block.timestamp));
         assertEq(factory.getDeployedTokensCount(), 1);
         assertEq(factory.deployedTokens(0), address(token));
-        assertEq(uint256(token.state()), uint256(INewPointToken.State.Draft));
+        assertEq(uint256(token.state()), uint256(IPointToken.State.Draft));
         assertEq(token.startDate(), 0);
         assertEq(token.expireDate(), 0);
         assertEq(token.totalSupply(), 0);
-        token.configureBusiness(INewPointToken.Business.A, abi.encode(block.timestamp, block.timestamp + 1 days));
-        assertEq(uint256(token.state()), uint256(INewPointToken.State.Configured));
+        token.configureBusiness(IPointToken.Business.A, abi.encode(block.timestamp, block.timestamp + 1 days));
+        assertEq(uint256(token.state()), uint256(IPointToken.State.Configured));
     }
 }

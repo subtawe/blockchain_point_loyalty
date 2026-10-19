@@ -4,7 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 /// @notice Lifecycle and Customer accounting for owner-issued Point identities.
-interface INewPointToken is IERC20Metadata {
+interface IPointToken is IERC20Metadata {
     error NotConfigured();
     error AlreadyConfigured();
     error InvalidBusiness();

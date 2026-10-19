@@ -5,12 +5,12 @@ const { ethers, networkHelpers } = await hre.network.connect();
 
 async function deployFixture() {
     const [owner, holder, recipient, spender] = await ethers.getSigners();
-    const factory = await ethers.deployContract("NewPointTokenFactory");
+    const factory = await ethers.deployContract("PointTokenFactory");
     const startDate = (await networkHelpers.time.latest()) + 100;
     const expireDate = startDate + 1000;
     await factory.deployPointToken("Loyalty Points", "LYT");
     const address = await factory.deployedTokens(0);
-    const token = await ethers.getContractAt("NewPointToken", address);
+    const token = await ethers.getContractAt("PointToken", address);
     await token.configureBusiness(1, ethers.AbiCoder.defaultAbiCoder().encode(
         ["uint256", "uint256"], [startDate, expireDate],
     ));
@@ -31,7 +31,7 @@ async function expiredFixture() {
     return context;
 }
 
-describe("NewPointToken: v3 identity and business A validity", function () {
+describe("PointToken: v3 identity and business A validity", function () {
     it("configures one immutable period after identity creation with the existing ownership model", async function () {
         const { factory, token, owner, holder, startDate, expireDate } = await networkHelpers.loadFixture(deployFixture);
         expect(await factory.pointTokenVersion()).to.equal(3);
@@ -53,7 +53,7 @@ describe("NewPointToken: v3 identity and business A validity", function () {
         const tx = await factory.deployPointToken("Second", "SEC");
         const address = await factory.deployedTokens(1);
         await expect(tx).to.emit(factory, "TokenDeployed").withArgs(address, "Second", "SEC", owner.address);
-        const draft = await ethers.getContractAt("NewPointToken", address);
+        const draft = await ethers.getContractAt("PointToken", address);
         expect(await draft.owner()).to.equal(owner.address);
         expect(await draft.state()).to.equal(0);
         expect(await draft.business()).to.equal(0);
@@ -72,7 +72,7 @@ describe("NewPointToken: v3 identity and business A validity", function () {
         it(`rejects ${label} atomically while retaining the registered Draft`, async function () {
             const { factory } = await networkHelpers.loadFixture(deployFixture);
             await factory.deployPointToken("Draft", "DFT");
-            const token = await ethers.getContractAt("NewPointToken", await factory.deployedTokens(1));
+            const token = await ethers.getContractAt("PointToken", await factory.deployedTokens(1));
             const [start, end] = dates(await networkHelpers.time.latest());
             const config = ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [start, end]);
             await expect(token.configureBusiness(1, config)).to.be.revertedWithCustomError(token, "InvalidDateRange");
@@ -86,7 +86,7 @@ describe("NewPointToken: v3 identity and business A validity", function () {
 
     it("rejects configuration at or after expiry while direct identity construction stays Draft", async function () {
         const { owner } = await networkHelpers.loadFixture(deployFixture);
-        const token = await ethers.deployContract("NewPointToken", ["Draft", "DFT", owner.address]);
+        const token = await ethers.deployContract("PointToken", ["Draft", "DFT", owner.address]);
         const now = await networkHelpers.time.latest();
         for (const expiry of [now, now - 1]) {
             const config = ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [now - 10, expiry]);
@@ -99,7 +99,7 @@ describe("NewPointToken: v3 identity and business A validity", function () {
     it("allows a past startDate and rolls back invalid separate issuance without consuming its ID", async function () {
         const { factory, holder } = await networkHelpers.loadFixture(deployFixture);
         await factory.deployPointToken("Active", "ACT");
-        const token = await ethers.getContractAt("NewPointToken", await factory.deployedTokens(1));
+        const token = await ethers.getContractAt("PointToken", await factory.deployedTokens(1));
         const now = await networkHelpers.time.latest();
         await token.configureBusiness(1, ethers.AbiCoder.defaultAbiCoder().encode(
             ["uint256", "uint256"], [now - 10, now + 100],

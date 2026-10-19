@@ -4,7 +4,7 @@ import hre from "hardhat";
 
 const outputDirectory = resolve("abi");
 await mkdir(outputDirectory, { recursive: true });
-for (const name of ["NewPointToken", "NewPointTokenFactory", "UpgradablePointFactory"]) {
+for (const name of ["PointToken", "PointTokenFactory", "UpgradablePointFactory"]) {
     const { abi } = await hre.artifacts.readArtifact(name);
     await writeFile(resolve(outputDirectory, `${name}.json`), JSON.stringify({ contractName: name, abi }, null, 2) + "\n");
     console.log(`Exported abi/${name}.json`);

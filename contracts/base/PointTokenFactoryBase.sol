@@ -2,10 +2,10 @@
 pragma solidity ^0.8.28;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {NewPointToken} from "../newPointToken.sol";
+import {PointToken} from "../pointToken.sol";
 
 /// @notice Deploys empty Point identities owned by the factory owner.
-abstract contract NewPointTokenFactoryBase is Ownable {
+abstract contract PointTokenFactoryBase is Ownable {
     uint256 private constant POINT_TOKEN_VERSION = 3;
 
     address[] public deployedTokens;
@@ -29,7 +29,7 @@ abstract contract NewPointTokenFactoryBase is Ownable {
         string memory name_,
         string memory symbol_
     ) external onlyOwner returns (address newTokenAddress) {
-        newTokenAddress = address(new NewPointToken(name_, symbol_, msg.sender));
+        newTokenAddress = address(new PointToken(name_, symbol_, msg.sender));
         deployedTokens.push(newTokenAddress);
         emit TokenDeployed(newTokenAddress, name_, symbol_, msg.sender);
     }

@@ -4,9 +4,9 @@ This repository imports the latest application snapshot with a fresh history. Ea
 
 An upgradeable loyalty-point system built on Solidity 0.8.28. The repository contains:
 
--   **UpgradablePointFactory** deploys empty `NewPointToken` identities through an atomically initialized UUPS proxy.
--   **NewPointToken** implements Point Loyalty v3 with one-time business configuration, escrow-backed inventory, and separate customer ledger and available balances.
--   **NewPointTokenFactory** deploys the same identities without a proxy. Both concrete contracts inherit their implementations from abstract base contracts.
+-   **UpgradablePointFactory** deploys empty `PointToken` identities through an atomically initialized UUPS proxy.
+-   **PointToken** implements Point Loyalty v3 with one-time business configuration, escrow-backed inventory, and separate customer ledger and available balances.
+-   **PointTokenFactory** deploys the same identities without a proxy. Both concrete contracts inherit their implementations from abstract base contracts.
 -   Solidity and TypeScript tests run through **Hardhat**, plus **Ignition** deployment scripts.
 -   Example upgrade path to a `V2` implementation (`UpgradablePointFactoryV2`).
 
@@ -97,7 +97,7 @@ This runs both the Solidity tests (including fuzz tests) and the Mocha/Chai test
 
 ### Foundry (Forge) tests
 ```bash
-forge test --match-contract NewPointFactoryTest
+forge test --match-contract PointFactoryTest
 ```
 > **Note:** Ensure `forge` is installed and available in your `$PATH`.
 
@@ -122,7 +122,7 @@ Both factories expose `pointTokenVersion() == 3` and accept identity only:
 deployPointToken(string name, string symbol)
 ```
 
-`TokenDeployed(tokenAddress, name, symbol, deployer)` comes from the actual factory or proxy address. The caller owns the new token. Its constructor is `NewPointToken(name, symbol, owner)`, with no dates, recipient, or initial mint. It starts in `Draft` with zero supply.
+`TokenDeployed(tokenAddress, name, symbol, deployer)` comes from the actual factory or proxy address. The caller owns the new token. Its constructor is `PointToken(name, symbol, owner)`, with no dates, recipient, or initial mint. It starts in `Draft` with zero supply.
 
 The token owner chooses a business once through a separate `configureBusiness(business, config)` transaction:
 
@@ -195,7 +195,7 @@ Export the updated consumer ABIs with:
 npx hardhat run scripts/export_point_abis.ts
 ```
 
-The export writes only `abi/NewPointToken.json`, `abi/NewPointTokenFactory.json`, and `abi/UpgradablePointFactory.json`. Backend integration must separate identity, business configuration, inventory, delivery, and redemption. Validate end-user authorization before selecting the privileged signer. The scripts validate signer ownership but do not implement backend user authentication. Backend integration and external rollout remain separate work.
+The export writes only `abi/PointToken.json`, `abi/PointTokenFactory.json`, and `abi/UpgradablePointFactory.json`. Backend integration must separate identity, business configuration, inventory, delivery, and redemption. Validate end-user authorization before selecting the privileged signer. The scripts validate signer ownership but do not implement backend user authentication. Backend integration and external rollout remain separate work.
 
 ### Direct Hardhat deployment (script example)
 ```bash
@@ -217,11 +217,11 @@ The TypeScript test `test/UpgradablePointFactory.ts` demonstrates this flow and 
 blockchain_point-loyalty/
 ├─ contracts/
 │   ├─ UpgradablePointFactory.sol      # UUPS factory
-│   ├─ newPointToken.sol               # Concrete V3 token
-│   ├─ newPointFactory.sol             # Concrete standalone factory
+│   ├─ pointToken.sol               # Concrete V3 token
+│   ├─ pointFactory.sol             # Concrete standalone factory
 │   ├─ base/
-│   │   ├─ NewPointTokenBase.sol       # V3 business and ERC20 implementation
-│   │   └─ NewPointTokenFactoryBase.sol # Standalone factory implementation
+│   │   ├─ PointTokenBase.sol       # V3 business and ERC20 implementation
+│   │   └─ PointTokenFactoryBase.sol # Standalone factory implementation
 │   ├─ AppProxy.sol                    # ERC1967Proxy wrapper for Ignition
 │   └─ test/                          # Solidity test contracts (Forge)
 ├─ test/                              # TypeScript test suites (Hardhat)
@@ -233,6 +233,6 @@ blockchain_point-loyalty/
 └─ README.md                          # This file
 ```
 
-`NewPointToken` and `NewPointTokenFactory` keep their existing constructor arguments and ABI. Their abstract bases cannot be deployed directly. `INewPointToken` declares the shared enums, structs, events, and errors. `UpgradablePointFactory` keeps its own initializer, ownership, registry storage, and upgrade authorization.
+`PointToken` and `PointTokenFactory` keep their existing constructor arguments and ABI. Their abstract bases cannot be deployed directly. `IPointToken` declares the shared enums, structs, events, and errors. `UpgradablePointFactory` keeps its own initializer, ownership, registry storage, and upgrade authorization.
 
-This branch removes the legacy `PointToken` and `PointTokenFactory` contracts, their deployment scripts and tests, and the unused ERC7818 epoch implementation. Existing on-chain deployments are unaffected. The design documents describe epoch behavior from earlier source versions.
+This branch removes the earlier block-based token and factory contracts, their deployment scripts and tests, and the unused ERC7818 epoch implementation. The earlier contracts shared the names `PointToken` and `PointTokenFactory`, which the current contracts now use. Existing on-chain deployments are unaffected. The design documents describe epoch behavior from earlier source versions.

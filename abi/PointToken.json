@@ -1,5 +1,5 @@
 {
-  "contractName": "NewPointToken",
+  "contractName": "PointToken",
   "abi": [
     {
       "inputs": [
@@ -281,7 +281,7 @@
       "inputs": [
         {
           "indexed": true,
-          "internalType": "enum INewPointToken.Business",
+          "internalType": "enum IPointToken.Business",
           "name": "business",
           "type": "uint8"
         },
@@ -800,7 +800,7 @@
       "name": "business",
       "outputs": [
         {
-          "internalType": "enum INewPointToken.Business",
+          "internalType": "enum IPointToken.Business",
           "name": "",
           "type": "uint8"
         }
@@ -811,7 +811,7 @@
     {
       "inputs": [
         {
-          "internalType": "enum INewPointToken.Business",
+          "internalType": "enum IPointToken.Business",
           "name": "business_",
           "type": "uint8"
         },
@@ -982,7 +982,7 @@
       "name": "lotValidityStatus",
       "outputs": [
         {
-          "internalType": "enum INewPointToken.ValidityStatus",
+          "internalType": "enum IPointToken.ValidityStatus",
           "name": "",
           "type": "uint8"
         }
@@ -1226,7 +1226,7 @@
       "name": "state",
       "outputs": [
         {
-          "internalType": "enum INewPointToken.State",
+          "internalType": "enum IPointToken.State",
           "name": "",
           "type": "uint8"
         }
@@ -1356,7 +1356,7 @@
               "type": "uint256"
             }
           ],
-          "internalType": "struct INewPointToken.Allocation[]",
+          "internalType": "struct IPointToken.Allocation[]",
           "name": "allocations",
           "type": "tuple[]"
         },
@@ -1389,7 +1389,7 @@
       "name": "transferPolicy",
       "outputs": [
         {
-          "internalType": "enum INewPointToken.TransferPolicy",
+          "internalType": "enum IPointToken.TransferPolicy",
           "name": "",
           "type": "uint8"
         }
@@ -1402,7 +1402,7 @@
       "name": "validityStatus",
       "outputs": [
         {
-          "internalType": "enum INewPointToken.ValidityStatus",
+          "internalType": "enum IPointToken.ValidityStatus",
           "name": "",
           "type": "uint8"
         }

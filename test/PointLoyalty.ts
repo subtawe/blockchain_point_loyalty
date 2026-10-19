@@ -164,7 +164,7 @@ const TOKEN_ABI = [
 
 async function directFactoryFixture() {
     const [owner, marketer, customer, recipient] = await ethers.getSigners();
-    const implementation = await ethers.deployContract("NewPointTokenFactory");
+    const implementation = await ethers.deployContract("PointTokenFactory");
     const factory = new ethers.Contract(await implementation.getAddress(), FACTORY_ABI, owner);
     return { owner, marketer, customer, recipient, factory };
 }

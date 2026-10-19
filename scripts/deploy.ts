@@ -11,14 +11,14 @@ async function main() {
     const deployerAddress = await deployer.getAddress();
     console.log(`Using deployer: ${deployerAddress}`);
 
-    const factoryFactory = await ethers.getContractFactory("NewPointTokenFactory", deployer);
+    const factoryFactory = await ethers.getContractFactory("PointTokenFactory", deployer);
     const factory = await factoryFactory.deploy();
 
     const deploymentTx = factory.deploymentTransaction();
     await waitForPointContractCreation(factory);
     await assertPointFactoryReady(factory, deployerAddress);
 
-    console.log(`NewPointTokenFactory (identity ABI v3) deployed at: ${await factory.getAddress()}`);
+    console.log(`PointTokenFactory (identity ABI v3) deployed at: ${await factory.getAddress()}`);
     if (deploymentTx?.hash) {
       console.log(`Deployment tx hash: ${deploymentTx.hash}`);
     }

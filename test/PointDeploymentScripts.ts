@@ -88,7 +88,7 @@ describe("Point deployment inputs", function () {
 
 async function factoryFixture() {
     const [owner, holder] = await ethers.getSigners();
-    const standalone = await ethers.deployContract("NewPointTokenFactory");
+    const standalone = await ethers.deployContract("PointTokenFactory");
     const implementation = await ethers.deployContract("UpgradablePointFactory");
     const proxy = await ethers.deployContract("AppProxy", [
         await implementation.getAddress(), implementation.interface.encodeFunctionData("initialize"),
@@ -137,7 +137,7 @@ describe("Point deployment preflight and receipts", function () {
             const address = await factory.getAddress();
             const deployed = readDeployedPointAddress(receipt, factory.interface, address);
             expect(deployed).to.equal(await factory.deployedTokens(0));
-            const token = await ethers.getContractAt("NewPointToken", deployed);
+            const token = await ethers.getContractAt("PointToken", deployed);
             expect(await token.balanceOf(holder.address)).to.equal(0);
             expect(await token.totalSupply()).to.equal(0);
             expect(await token.state()).to.equal(0);
@@ -157,7 +157,7 @@ describe("Point deployment preflight and receipts", function () {
     it("deploys identity, configures A separately and mints escrow rather than customer balance", async function () {
         const { owner, holder, standalone, startDate, expireDate } = await networkHelpers.loadFixture(factoryFixture);
         const address = await deployPointToken(standalone, { name: "Points", symbol: "PTS" });
-        const token = await ethers.getContractAt("NewPointToken", address);
+        const token = await ethers.getContractAt("PointToken", address);
         await configurePointBusiness(token, { kind: "A", startDate, expireDate }, owner.address, ethers.provider);
         await mintPointInventory(token, { kind: "mint", amount: 100n, recipient: holder.address,
             operationId: ethers.id("script-stock") }, owner.address);
@@ -172,7 +172,7 @@ describe("Point deployment preflight and receipts", function () {
     it("leaves Draft untouched and allows only explicit stock without configuration", async function () {
         const { owner, holder, standalone } = await networkHelpers.loadFixture(factoryFixture);
         const address = await deployPointToken(standalone, { name: "Draft", symbol: "DFT" });
-        const token = await ethers.getContractAt("NewPointToken", address);
+        const token = await ethers.getContractAt("PointToken", address);
         await configurePointBusiness(token, { kind: "Draft" }, owner.address, ethers.provider);
         await mintPointInventory(token, { kind: "none" }, owner.address);
         expect(await token.totalSupply()).to.equal(0);
@@ -186,7 +186,7 @@ describe("Point deployment preflight and receipts", function () {
     it("accepts equivalent address and operation-ID casing when inventory helper is called directly", async function () {
         const { owner, holder, standalone } = await networkHelpers.loadFixture(factoryFixture);
         const address = await deployPointToken(standalone, { name: "Case Points", symbol: "CASE" });
-        const token = await ethers.getContractAt("NewPointToken", address);
+        const token = await ethers.getContractAt("PointToken", address);
         const operationId = ethers.id("mixed-case-stock");
         const mixedCaseId = `0x${operationId.slice(2).toUpperCase()}`;
 
@@ -208,7 +208,7 @@ describe("Point deployment preflight and receipts", function () {
         it(`configures business ${config.kind} policy ${policy} without manufacturing dates`, async function () {
             const { owner, standalone } = await networkHelpers.loadFixture(factoryFixture);
             const address = await deployPointToken(standalone, { name: "Lot Points", symbol: "LOT" });
-            const token = await ethers.getContractAt("NewPointToken", address);
+            const token = await ethers.getContractAt("PointToken", address);
             await configurePointBusiness(token, config, owner.address, ethers.provider);
             expect(await token.business()).to.equal(business);
             expect(await token.transferPolicy()).to.equal(policy);
@@ -223,7 +223,7 @@ describe("Point deployment preflight and receipts", function () {
     it("rechecks chain expiry and token owner before configuration or inventory transactions", async function () {
         const { owner, holder, standalone, startDate, expireDate } = await networkHelpers.loadFixture(factoryFixture);
         const address = await deployPointToken(standalone, { name: "Points", symbol: "PTS" });
-        const token = await ethers.getContractAt("NewPointToken", address);
+        const token = await ethers.getContractAt("PointToken", address);
         await expect(configurePointBusiness(token, { kind: "A", startDate, expireDate }, holder.address, ethers.provider))
             .to.be.rejectedWith("owner of the token");
         await networkHelpers.time.increaseTo(expireDate);
@@ -238,7 +238,7 @@ describe("Point deployment preflight and receipts", function () {
     it("requires successful configuration and issuance receipts from the expected token", async function () {
         const { owner, holder, standalone, startDate, expireDate } = await networkHelpers.loadFixture(factoryFixture);
         const address = await deployPointToken(standalone, { name: "Points", symbol: "PTS" });
-        const token = await ethers.getContractAt("NewPointToken", address);
+        const token = await ethers.getContractAt("PointToken", address);
         const config = ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [startDate, expireDate]);
         const configReceipt = await (await token.configureBusiness(1, config)).wait();
         const issueReceipt = await (await token.mintInventory(holder.address, 1, ethers.id("receipt-stock"))).wait();

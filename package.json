@@ -10,7 +10,7 @@
     "test:gas": "REPORT_GAS=true hardhat test",
     "test:coverage": "hardhat coverage",
     "test:watch": "hardhat watch test",
-    "test:specific": "hardhat test test/ExpireNFT.test.ts",
+    "test:specific": "hardhat test test/PointLoyalty.ts",
     "test:foundry": "forge test",
     "test:foundry:gas": "forge test --gas-report",
     "test:foundry:coverage": "forge coverage",

@@ -67,7 +67,7 @@ Tests cover identity-first state, authorization, configuration rollback, date bo
 ./node_modules/.bin/hardhat run scripts/export_point_abis.ts
 ```
 
-Canonical exports are `abi/NewPointToken.json`, `abi/NewPointTokenFactory.json`, and `abi/UpgradablePointFactory.json`. The factory registry and UUPS storage gap remain unchanged. An upgrade changes future creation, not code or balances at existing token addresses. V2 dated and legacy epoch selectors are absent from v3; old deployments and Ignition records retain their historical meaning.
+Canonical exports are `abi/PointToken.json`, `abi/PointTokenFactory.json`, and `abi/UpgradablePointFactory.json`. The factory registry and UUPS storage gap remain unchanged. An upgrade changes future creation, not code or balances at existing token addresses. V2 dated and legacy epoch selectors are absent from v3; old deployments and Ignition records retain their historical meaning.
 
 ## Historical v2 record, 2026-10-02
 
@@ -75,7 +75,7 @@ The remainder records the earlier shared-date-only v2 design and its validation 
 
 วันที่รีวิว: 2026-10-02
 
-สถานะ: Implemented ใน repository ฝั่ง Point: NewPointToken, Factory, interfaces, scripts และ tests ใช้วันตาม design แล้ว ยังไม่ได้ deploy บน external chain หรือแก้ Backend repository แยก
+สถานะ: Implemented ใน repository ฝั่ง Point: PointToken, Factory, interfaces, scripts และ tests ใช้วันตาม design แล้ว ยังไม่ได้ deploy บน external chain หรือแก้ Backend repository แยก
 
 ข้อกำหนดเพิ่มเติมจากผู้ใช้: ค่ารับเข้าด้านวันของ Point รุ่นใหม่ต้องใช้ `startDate` / `expireDate` เหมือน Coupon โดยตรง ทั้งสองค่า required ไม่มี alias `endDate` และไม่มี input สำหรับคำนวณอายุแบบ months/epoch
 
@@ -89,19 +89,19 @@ The remainder records the earlier shared-date-only v2 design and its validation 
 
 ## 2. สิ่งที่พบจากโค้ดก่อน implementation
 
-ตารางนี้บันทึกโค้ดรุ่นก่อนหน้า ปัจจุบันลบชุด PointToken/PointTokenFactory และ ERC7818 ที่เลิกใช้แล้ว ส่วน implementation ของ NewPointToken อยู่ใน `contracts/base/NewPointTokenBase.sol`.
+ตารางนี้บันทึกโค้ดรุ่นก่อนหน้า ปัจจุบันลบชุด PointToken/PointTokenFactory รุ่น block-based เดิมและ ERC7818 ที่เลิกใช้แล้ว ส่วน PointToken รุ่นวันที่ (เดิมชื่อ NewPointToken ก่อนเปลี่ยนชื่อ) มี implementation อยู่ใน `contracts/base/PointTokenBase.sol`.
 
 | Source | พฤติกรรมปัจจุบัน / ผลต่อ design |
 |---|---|
-| `contracts/newPointToken.sol:17` | ตั้งต้น window ด้วย block.timestamp ณ deploy และ secondsPerEpoch/windowSize โดย safe=false ไม่ได้รับ startDate/expireDate |
+| `contracts/pointToken.sol:17` | ตั้งต้น window ด้วย block.timestamp ณ deploy และ secondsPerEpoch/windowSize โดย safe=false ไม่ได้รับ startDate/expireDate |
 | `contracts/token/ERC7818/ERC7818.sol:122` | mint เก็บ epoch และ timestamp bucket ของแต่ละครั้ง |
 | `contracts/token/ERC7818/ERC7818.sol:46` และ `:225` | แต้มแต่ละ bucket หมดอายุเมื่ออายุถึง duration × size |
 | `contracts/token/ERC7818/ERC7818.sol:111` | isEpochExpired ตรวจระดับ epoch ซึ่งไม่ใช่คำตอบเดียวกับวันหมดอายุของแต่ละ bucket |
 | `contracts/token/ERC7818/ERC7818.sol:509` | balanceOf คำนวณเฉพาะแต้มที่ยังไม่หมดอายุ |
 | `contracts/token/ERC7818/ERC7818.sol:264` | API transferAtEpoch มี logic แยกจาก transfer ปกติ จึงไม่ควรแก้เพียง predicate จุดเดียวแล้วถือว่าทุก path เปลี่ยนแล้ว |
 | `contracts/token/ERC7818/ERC7818.sol:500` | totalSupply คืน 0 เสมอ |
-| `contracts/UpgradablePointFactory.sol:62` | Factory deploy token ด้วย new NewPointToken; token ไม่ใช่ proxy |
-| `contracts/token/ERC7818/ERC7818B.sol` | มี epoch implementation อีกชุด แต่ไม่ถูกใช้โดย NewPointToken/PointToken ปัจจุบัน |
+| `contracts/UpgradablePointFactory.sol:62` | Factory deploy token ด้วย new PointToken; token ไม่ใช่ proxy |
+| `contracts/token/ERC7818/ERC7818B.sol` | มี epoch implementation อีกชุด แต่ไม่ถูกใช้โดย PointToken ปัจจุบัน |
 | Coupon repo: `contracts/abstracts/BaseCoupon.sol:65` | CouponType มี startDate/expireDate แบบ uint256 และ validate startDate < expireDate |
 | Coupon repo: `contracts/abstracts/BaseCoupon.sol:142` และ `:309` | ใช้งานได้เมื่อ startDate <= block.timestamp <= expireDate; expired เมื่อ now > expireDate |
 | Coupon repo: `contracts/abstracts/BaseCoupon.sol:104` | mint ไม่ตรวจวันที่ และ ERC1155 balance ไม่หายเพราะหมดอายุ; ตรวจวันที่ที่ redemption |
@@ -159,7 +159,7 @@ The remainder records the earlier shared-date-only v2 design and its validation 
 
 ## 5. Contract / API ที่เสนอ
 
-ใช้ชื่อ `NewPointToken` สำหรับ implementation รุ่นวันที่ที่ deploy ใหม่ ใช้ OpenZeppelin ERC20 + Ownable ที่ repository ใช้อยู่ ตรวจช่วงเวลาใน transfer path กลางและใน public mint/burn ให้ transfer และ transferFrom ใช้กติกาเดียวกัน รวม zero-value และ self-transfer ไม่จำเป็นต้อง rename contract; token address ที่ deploy ด้วย code เดิมยังใช้ epoch เช่นเดิม
+ใช้ชื่อ `PointToken` สำหรับ implementation รุ่นวันที่ที่ deploy ใหม่ ใช้ OpenZeppelin ERC20 + Ownable ที่ repository ใช้อยู่ ตรวจช่วงเวลาใน transfer path กลางและใน public mint/burn ให้ transfer และ transferFrom ใช้กติกาเดียวกัน รวม zero-value และ self-transfer ไม่จำเป็นต้อง rename contract; token address ที่ deploy ด้วย code เดิมยังใช้ epoch เช่นเดิม
 
 API รุ่นใหม่ที่เสนอ:
 
@@ -191,11 +191,11 @@ Validation ของ DTO ใช้ required + integer + range ที่ API ร�
 - เพิ่ม event แยก `DatedTokenDeployed(tokenAddress, name, symbol, deployer, initAmount, to, startDate, expireDate)` ให้ adapter/indexer ระบุรุ่นและวันที่ได้จาก receipt
 - ไม่เปลี่ยน schema event TokenDeployed เดิม; ไม่ emit สอง deployment events สำหรับ token เดียวโดยไม่มีนโยบาย deduplication
 - รุ่นใหม่ไม่ implement IERC7818 และไม่มี API epoch เพื่อไม่สร้าง semantics epoch จำลอง
-- ข้อเสนอเดิมเก็บ PointToken/block-based และ NewPointToken/time-based ไว้ใน legacy path ปัจจุบันลบชุด legacy ออกจาก source แล้ว โดย deployment เดิมบน chain ไม่เปลี่ยนแปลง
+- ข้อเสนอเดิมเก็บ PointToken รุ่น block-based และ NewPointToken (ชื่อเดิมของ PointToken รุ่น time-based ปัจจุบัน) ไว้ใน legacy path ปัจจุบันลบชุด legacy ออกจาก source แล้ว โดย deployment เดิมบน chain ไม่เปลี่ยนแปลง
 
 ## 6. Sequence ที่เสนอ
 
-Sequence ฉบับล่าสุดตามบทสนทนา รวม Create, Mint, Transfer และ Burn พร้อม error paths อยู่ใน [POINT_DATE_VALIDITY_SEQUENCES.md](POINT_DATE_VALIDITY_SEQUENCES.md) ชื่อ DatePointToken/deployDatedPointToken ใน draft เดิมปรับเป็น NewPointToken/deployPointToken โดยยังเป็น ABI และ deployment รุ่นใหม่
+Sequence ฉบับล่าสุดตามบทสนทนา รวม Create, Mint, Transfer และ Burn พร้อม error paths อยู่ใน [POINT_DATE_VALIDITY_SEQUENCES.md](POINT_DATE_VALIDITY_SEQUENCES.md) ชื่อ DatePointToken/deployDatedPointToken ใน draft เดิมปรับเป็น PointToken/deployPointToken โดยยังเป็น ABI และ deployment รุ่นใหม่
 
 ### Create
 
@@ -204,11 +204,11 @@ sequenceDiagram
     actor B as Backend / Factory owner
     participant P as AppProxy
     participant F as Factory implementation
-    participant T as NewPointToken (date-based)
+    participant T as PointToken (date-based)
     B->>P: deployPointToken(name, symbol, startDate, expireDate, initAmount, to)
     P->>F: delegatecall
     F->>F: onlyOwner + validate dates
-    F->>T: new NewPointToken(..., owner = msg.sender)
+    F->>T: new PointToken(..., owner = msg.sender)
     T->>T: บันทึกวันที่ immutable และ initial mint
     T-->>F: tokenAddress
     F->>F: deployedTokens.push(tokenAddress)
@@ -223,7 +223,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor O as Token owner
-    participant T as NewPointToken (date-based)
+    participant T as PointToken (date-based)
     O->>T: mint(to, value)
     T->>T: onlyOwner + reject now > expireDate
     T->>T: ERC20 _mint(to, value)
@@ -238,7 +238,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor U as Holder / Spender
-    participant T as NewPointToken (date-based)
+    participant T as PointToken (date-based)
     U->>T: transfer หรือ transferFrom
     T->>T: ตรวจ Active; ตรวจ allowance ถ้า transferFrom
     T->>T: ERC20 balance / address checks
@@ -281,8 +281,8 @@ Factory implementation รักษา owner, deployedTokens และ __gap เ
 | Phase | Deliverable / gate |
 |---|---|
 | 1. ตกลง semantics — เสร็จ | หนึ่งช่วงต่อ token; balanceOf เป็น ledger; availableBalanceOf เป็นยอดใช้ได้; mint ล่วงหน้า; วัน immutable และ expiry boundary ตามเอกสาร |
-| 2. Contract รุ่นวันที่ — เสร็จ | NewPointToken + date interface + tests; token addresses เดิมไม่เปลี่ยน logic |
-| 3. Factory — เสร็จ | NewPointTokenFactory และ UpgradablePointFactory ใช้ date ABI, DatedTokenDeployed และ version 2; ทดสอบ UUPS owner/registry preservation; ไม่รองรับ epoch deployment selector เดิม |
+| 2. Contract รุ่นวันที่ — เสร็จ | PointToken + date interface + tests; token addresses เดิมไม่เปลี่ยน logic |
+| 3. Factory — เสร็จ | PointTokenFactory และ UpgradablePointFactory ใช้ date ABI, DatedTokenDeployed และ version 2; ทดสอบ UUPS owner/registry preservation; ไม่รองรับ epoch deployment selector เดิม |
 | 4. Adapter — ทำบางส่วน | Export ABI และปรับ scripts ใน repo นี้แล้ว; Backend DTO/create/balance/update, DB version fields และ indexer ยังเป็นงานต่อเนื่องใน repository แยก |
 | 5. Local validation — ผ่าน | Compile, Hardhat Solidity/Mocha tests, fuzz, TypeScript typecheck และ simulated local deployment ผ่าน |
 | 6. Rollout — ยังไม่ทำ | ใช้ Factory address ใหม่; dry run chain เป้าหมายและตรวจ ABI/version/events/วันที่ก่อน deploy จริง |
@@ -296,7 +296,7 @@ Factory implementation รักษา owner, deployedTokens และ __gap เ
 - การอ่าน deployment event เดิมตรวจเฉพาะชื่อ event: รวม receipt parser ให้ตรวจ status และ emitter ตรง Factory/proxy ที่เรียก ก่อนยอมรับ token address
 - Script deploy proxy/token เคยตรวจวันหมดอายุหลังส่ง implementation/proxy transactions ไปแล้ว: เพิ่ม preflight เทียบ latest chain timestamp ก่อนส่ง transaction และตรวจซ้ำก่อนสร้าง token; contract ยังตรวจตอน execute เพื่อรองรับเวลาที่ผ่านระหว่าง mining
 - รวม input parsing, preflight และ deploy/receipt workflow ที่ซ้ำกัน; ตัด ts-ignore ใน scripts กลุ่มนี้ และตรวจ zero address/checksum ของ Factory input
-- ลดเงื่อนไข expiry ที่ซ้ำใน NewPointToken._update โดยคง mint-before-start และ inclusive expiry เดิม; ไม่เปลี่ยน ABI, inheritance หรือ storage declarations ของ Factory ในรอบ refactor
+- ลดเงื่อนไข expiry ที่ซ้ำใน PointToken._update โดยคง mint-before-start และ inclusive expiry เดิม; ไม่เปลี่ยน ABI, inheritance หรือ storage declarations ของ Factory ในรอบ refactor
 
 Regression tests สำหรับ scripts ครอบคลุม date input ที่ผิดรูปแบบ/หน่วย, missing dates, invalid Factory address, version/owner, expiry เท่ากับ chain timestamp, receipt ล้มเหลว/ไม่มี event/emitter ผิด และ deployment receipt จริงของ Factory ทั้งสองแบบ
 

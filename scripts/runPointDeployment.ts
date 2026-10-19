@@ -6,16 +6,16 @@ import {
 } from "./pointDeployment.js";
 import { readPointBusiness, readPointFactoryAddress, readPointInventory } from "./pointParameters.js";
 import type { PointBusinessConfig, PointInventory } from "./pointParameters.js";
-import type { NewPointToken } from "../types/ethers-contracts/index.js";
+import type { PointToken } from "../types/ethers-contracts/index.js";
 
 interface DeploymentOptions {
-    factoryContract: "NewPointTokenFactory" | "UpgradablePointFactory";
+    factoryContract: "PointTokenFactory" | "UpgradablePointFactory";
     name: string;
     symbol: string;
 }
 
 export async function finishPointSetup(
-    token: NewPointToken, business: PointBusinessConfig, inventory: PointInventory, signerAddress: string,
+    token: PointToken, business: PointBusinessConfig, inventory: PointInventory, signerAddress: string,
     provider: Pick<Provider, "getBlock">,
 ): Promise<void> {
     await configurePointBusiness(token, business, signerAddress, provider);
@@ -46,8 +46,8 @@ export async function runPointDeployment(options: DeploymentOptions): Promise<vo
         const { ethers } = connection;
         const [signer] = await ethers.getSigners();
         if (!signer) throw new Error("A deployment signer is required");
-        const factory = options.factoryContract === "NewPointTokenFactory"
-            ? await ethers.getContractAt("NewPointTokenFactory", factoryAddress, signer)
+        const factory = options.factoryContract === "PointTokenFactory"
+            ? await ethers.getContractAt("PointTokenFactory", factoryAddress, signer)
             : await ethers.getContractAt("UpgradablePointFactory", factoryAddress, signer);
         await assertPointFactoryReady(factory, signer.address);
         if (business.kind === "A") await assertPointDatesCurrent(ethers.provider, business);
@@ -55,7 +55,7 @@ export async function runPointDeployment(options: DeploymentOptions): Promise<vo
         console.log("Factory:", factoryAddress);
 
         const tokenAddress = await deployPointToken(factory, { name: options.name, symbol: options.symbol });
-        const token = await ethers.getContractAt("NewPointToken", tokenAddress, signer);
+        const token = await ethers.getContractAt("PointToken", tokenAddress, signer);
         await finishPointSetup(token, business, inventory, signer.address, ethers.provider);
     } finally {
         await connection.close();

@@ -16,7 +16,7 @@ A ตั้งวันร่วมกันหลัง deploy; B/C ใช้�
 
 สองนโยบายวันหมดอายุ พร้อมสามรูปแบบ journey:
 
-- **A: หมดอายุพร้อมกันทั้ง Token**. อ้างอิง NewPointToken ปัจจุบันที่กำหนด immutable startDate / expireDate ตอนสร้าง; mint ไม่รับวันใหม่
+- **A: หมดอายุพร้อมกันทั้ง Token**. อ้างอิง PointToken ปัจจุบันที่กำหนด immutable startDate / expireDate ตอนสร้าง; mint ไม่รับวันใหม่
 - **B: แยกล็อต + FEFO อัตโนมัติ**. design proposal ยังไม่ implement; วันอยู่ระดับ lot; ผู้ส่งระบุผู้รับและจำนวน แล้ว contract เลือก Active lot ที่หมดอายุก่อน
 - **C: แยกล็อต + เลือกล็อตตอนโอน**. design proposal เพิ่มเติม; ผู้ส่งเลือก lotId และจำนวนจากแต่ละล็อต; ใช้ได้เฉพาะโปรแกรมที่อนุญาต manual transfer; การใช้แต้มยังเป็น redeemFEFO
 
@@ -90,7 +90,7 @@ autonumber
 actor O as Marketer
 participant S as Admin service / Script
 participant F as Point Factory v2
-participant T as NewPointToken
+participant T as PointToken
 O->>S: สร้างชุดแต้ม เริ่ม 1 ต.ค. หมด 31 ธ.ค.
 S->>F: deployPointToken(name,symbol,startDate,expireDate,0,to)
 F->>F: onlyOwner และตรวจช่วงวันที่
@@ -127,7 +127,7 @@ autonumber
 actor A as Alice
 participant U as Proposed App
 participant R as Chain RPC
-participant T as NewPointToken
+participant T as PointToken
 A->>U: เปิดดูแต้มที่ได้รับ
 U->>R: อ่าน availableBalanceOf(Alice), balanceOf(Alice), getPointDates และ validityStatus
 R->>T: eth_call ณ block ที่อ่าน
@@ -148,7 +148,7 @@ App และ service เป็น integration ที่เสนอ. การ�
 sequenceDiagram
 autonumber
 actor A as Alice
-participant T as NewPointToken
+participant T as PointToken
 actor B as Bob
 participant S as Redemption service
 Note over A,B: เริ่มต้น Alice = 150 / Bob = 0
@@ -188,7 +188,7 @@ sequenceDiagram
 autonumber
 actor U as Member / App
 participant R as Chain RPC
-participant T as NewPointToken
+participant T as PointToken
 Note over U,T: หลังโอนและใช้: ledger Alice = 30 / Bob = 40
 U->>R: 1 พ.ย. อ่าน availableBalanceOf ของทั้งคู่
 R->>T: eth_call ณ block ที่เลือก

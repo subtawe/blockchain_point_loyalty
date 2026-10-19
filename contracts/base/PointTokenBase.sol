@@ -2,13 +2,13 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {INewPointToken} from "../interfaces/INewPointToken.sol";
+import {IPointToken} from "../interfaces/IPointToken.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ThaiCalendar} from "../utils/ThaiCalendar.sol";
 
 /// @notice Owner-configured Customer points with escrow-backed Marketer inventory.
 /// @dev Expiration locks spending without burning ledger balances or supply.
-abstract contract NewPointTokenBase is ERC20, Ownable, INewPointToken {
+abstract contract PointTokenBase is ERC20, Ownable, IPointToken {
     uint256 private constant DATE_CONFIG_LENGTH = 64;
     uint256 private constant POLICY_CONFIG_LENGTH = 32;
     uint256 private constant MAX_WALLET_LOTS = 256;

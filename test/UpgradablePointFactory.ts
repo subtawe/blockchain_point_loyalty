@@ -36,7 +36,7 @@ describe("UpgradablePointFactory: v3 identity deployment", function () {
         if (!receipt) throw new Error("Expected a deployment receipt");
         expect(receipt.status).to.equal(1);
         expect(readDeployedPointAddress(receipt, factory.interface, await factory.getAddress())).to.equal(address);
-        const token = await ethers.getContractAt("NewPointToken", address);
+        const token = await ethers.getContractAt("PointToken", address);
         expect(await token.owner()).to.equal(owner.address);
         expect(await token.state()).to.equal(0);
         expect(await token.business()).to.equal(0);
@@ -49,7 +49,7 @@ describe("UpgradablePointFactory: v3 identity deployment", function () {
         const { factory, owner, holder, startDate, expireDate } = await networkHelpers.loadFixture(deployProxyFixture);
         await factory.deployPointToken("Draft", "DFT");
         const address = await factory.deployedTokens(0);
-        const token = await ethers.getContractAt("NewPointToken", address);
+        const token = await ethers.getContractAt("PointToken", address);
         const coder = ethers.AbiCoder.defaultAbiCoder();
         await expect(token.configureBusiness(1, coder.encode(["uint256", "uint256"], [expireDate, startDate])))
             .to.be.revertedWithCustomError(token, "InvalidDateRange");
@@ -74,7 +74,7 @@ describe("UpgradablePointFactory: v3 identity deployment", function () {
         const { factory, owner, holder, startDate, expireDate } = await networkHelpers.loadFixture(deployProxyFixture);
         await factory.deployPointToken("First", "ONE");
         const first = await factory.deployedTokens(0);
-        const token = await ethers.getContractAt("NewPointToken", first);
+        const token = await ethers.getContractAt("PointToken", first);
         await token.configureBusiness(1, ethers.AbiCoder.defaultAbiCoder().encode(
             ["uint256", "uint256"], [startDate, expireDate],
         ));
@@ -95,7 +95,7 @@ describe("UpgradablePointFactory: v3 identity deployment", function () {
         await upgraded.deployPointToken("Second", "TWO");
         expect(await upgraded.getDeployedTokensCount()).to.equal(2);
         expect(await upgraded.deployedTokens(0)).to.equal(first);
-        const second = await ethers.getContractAt("NewPointToken", await upgraded.deployedTokens(1));
+        const second = await ethers.getContractAt("PointToken", await upgraded.deployedTokens(1));
         expect(await second.state()).to.equal(0);
         expect(await second.totalSupply()).to.equal(0);
     });

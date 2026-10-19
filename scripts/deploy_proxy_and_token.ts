@@ -28,7 +28,7 @@ async function main() {
         const factory = await ethers.getContractAt("UpgradablePointFactory", await proxy.getAddress(), signer);
         await assertPointFactoryReady(factory, signer.address);
         const tokenAddress = await deployPointToken(factory, { name: "ui", symbol: "UI" });
-        const token = await ethers.getContractAt("NewPointToken", tokenAddress, signer);
+        const token = await ethers.getContractAt("PointToken", tokenAddress, signer);
         await finishPointSetup(token, business, inventory, signer.address, ethers.provider);
     } finally {
         await connection.close();

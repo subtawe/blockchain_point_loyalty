@@ -89,11 +89,6 @@ const config: HardhatUserConfig = {
         etherscan: {
           name: "amoy",
           url: "https://amoy.polygonscan.com",
-          apiUrl: "https://polygon-amoy.g.alchemy.com/v2/",
-        },
-        blockscout: {
-          name: "amoy",
-          url: "https://amoy.polygonscan.com/",
           apiUrl: "https://api.etherscan.io/v2/api",
         },
         // other explorers...

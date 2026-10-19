@@ -11,7 +11,7 @@ actor O as Factory and token owner
 participant S as Script
 participant R as Chain
 participant F as Factory or initialized proxy v3
-participant T as NewPointToken
+participant T as PointToken
 O->>S: name, symbol, optional business and inventory inputs
 S->>S: Parse explicit inputs; omitted business means Draft
 S->>F: pointTokenVersion(), owner()
@@ -22,7 +22,7 @@ S->>S: Reject expired A dates
 end
 S->>F: deployPointToken(name, symbol)
 F->>F: onlyOwner
-F->>T: new NewPointToken(name, symbol, msg.sender)
+F->>T: new PointToken(name, symbol, msg.sender)
 T-->>F: Empty Draft identity, zero supply
 F->>F: Register token and emit TokenDeployed
 F-->>S: Execution result and TokenDeployed event
@@ -55,7 +55,7 @@ The proxy runner checks A dates before implementation creation, deploys the prox
 sequenceDiagram
 autonumber
 actor O as Token owner
-participant T as NewPointToken
+participant T as PointToken
 participant M as Marketer inventory claim
 participant C as Customer ledger
 participant R as RPC / Chain
@@ -96,7 +96,7 @@ sequenceDiagram
 autonumber
 actor H as Holder or approved spender
 actor O as Token owner
-participant T as NewPointToken
+participant T as PointToken
 participant R as RPC / Chain
 H->>T: transfer(to,value) or transferFrom(from,to,value)
 opt transferFrom
@@ -144,7 +144,7 @@ Everything below is the earlier shared-date-only implementation record. Its date
 - `balanceOf` และ `totalSupply` เป็น ledger; available balance/supply คืน 0 นอกช่วง Active
 - Create แสดง existing-factory script workflow; scripts ปัจจุบันใช้ signer เป็น initial recipient (`to`) ส่วน contract รับ recipient แยกได้
 - สำหรับ deploy_proxy_and_token: preflight dates ก่อน deploy implementation; initialize proxy ผ่าน constructor แบบ atomic; ตรวจ dates อีกครั้งก่อนสร้าง Token
-- Mint / Transfer / Burn แสดง execution ภายใน Token ตามลำดับจริงของ OpenZeppelin 5.0.2 และ NewPointToken._update
+- Mint / Transfer / Burn แสดง execution ภายใน Token ตามลำดับจริงของ OpenZeppelin 5.0.2 และ PointToken._update
 - ลูกศร return ใน contract diagrams เป็น Solidity execution result; ผู้ส่ง transaction ต้องรอ mined receipt เพื่อยืนยันผล
 - Token address เก่าคง logic เดิม; diagrams นี้อธิบาย date-based version เท่านั้น
 
@@ -161,7 +161,7 @@ actor O as Factory owner
 participant C as Deployment script
 participant R as RPC / Chain
 participant F as Factory v2
-participant T as NewPointToken
+participant T as PointToken
 O->>C: name, symbol, dates, initAmount, to
 C->>C: readPointDates + readPointFactoryAddress
 Note over C,F: Existing factory ต้อง initialized แล้ว; script ไม่ initialize ให้อัตโนมัติ
@@ -181,7 +181,7 @@ F->>F: onlyOwner; startDate < expireDate; expireDate > block.timestamp
 break Authorization หรือ dates ไม่ผ่าน
 F-->>R: revert OwnableUnauthorizedAccount / InvalidDateRange / PointExpired
 end
-F->>T: new NewPointToken(..., to, owner = msg.sender)
+F->>T: new PointToken(..., to, owner = msg.sender)
 T->>T: ตรวจ owner และ dates; เก็บ immutable startDate / expireDate
 opt initAmount > 0
 T->>T: _mint(to, initAmount) ตรวจ recipient แล้วเข้า _update
@@ -208,7 +208,7 @@ Mint ก่อน startDate ได้ · ใช้ block.timestamp ตอน exe
 sequenceDiagram
 autonumber
 actor O as Token owner
-participant T as NewPointToken
+participant T as PointToken
 O->>T: mint(to, value)
 T->>T: onlyOwner
 break caller ไม่ใช่ owner
@@ -249,7 +249,7 @@ Allowance ก่อน addresses ก่อน date guard ก่อน balance ·
 sequenceDiagram
 autonumber
 actor C as Holder / Spender
-participant T as NewPointToken
+participant T as PointToken
 alt Holder โอนเอง
 C->>T: transfer(to, value)
 T->>T: from = msg.sender
@@ -294,7 +294,7 @@ Burn ต้อง Active · ตรวจ address ก่อน expiry · ไม�
 sequenceDiagram
 autonumber
 actor O as Token owner
-participant T as NewPointToken
+participant T as PointToken
 O->>T: burn(from, value)
 T->>T: onlyOwner
 break caller ไม่ใช่ owner

@@ -2,7 +2,7 @@
 
 Business D stores inventory separately from customer points. The Owner configures the business once and grants a Marketer permission to deliver from their own inventory claim. The Owner may deliver from any claim.
 
-Use [NewPointToken.json](../abi/NewPointToken.json), which contains `contractName` and an `abi` array. Connect ethers to that array. Do not use the whole wrapper as an ABI.
+Use [PointToken.json](../abi/PointToken.json), which contains `contractName` and an `abi` array. Connect ethers to that array. Do not use the whole wrapper as an ABI.
 
 ## Dates and lot identity
 
@@ -57,7 +57,7 @@ export async function monthlyDeliveryExample(point, owner, marketer, customer, c
 }
 ```
 
-Amounts here are raw token units. NewPointToken has 18 decimals. Use `parseUnits` when the input is a displayed token amount. This example uses FEFO_ONLY, policy 0. Policy 1 permits manual lot selection. It does not change the monthly date rules.
+Amounts here are raw token units. PointToken has 18 decimals. Use `parseUnits` when the input is a displayed token amount. This example uses FEFO_ONLY, policy 0. Policy 1 permits manual lot selection. It does not change the monthly date rules.
 
 After the example, the customer has one lot with 120 units, the inventory claim and escrow each hold 880, and totalSupply remains 1,000. The Marketer is revoked, but the Owner's delivery still succeeds. Delivery from inventory does not require customer opt-in. Customer wallet transfers do require recipient consent through `allowSender`.
 

@@ -3,14 +3,14 @@ pragma solidity ^0.8.28;
 
 import "forge-std/Test.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
-import "../newPointFactory.sol";
-import {INewPointToken} from "../interfaces/INewPointToken.sol";
+import "../pointFactory.sol";
+import {IPointToken} from "../interfaces/IPointToken.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import "../newPointToken.sol";
+import "../pointToken.sol";
 
-contract NewPointFactoryTest is Test {
-    NewPointTokenFactory public factory;
-    NewPointToken public token;
+contract PointFactoryTest is Test {
+    PointTokenFactory public factory;
+    PointToken public token;
     address public holder = address(0x123);
     address public recipient = address(0x456);
     address public spender = address(0x789);
@@ -19,11 +19,11 @@ contract NewPointFactoryTest is Test {
 
     function setUp() public {
         vm.warp(1_700_000_000);
-        factory = new NewPointTokenFactory();
+        factory = new PointTokenFactory();
         startDate = block.timestamp + 100;
         expireDate = startDate + 1 days;
-        token = NewPointToken(factory.deployPointToken("Points", "PTS"));
-        token.configureBusiness(INewPointToken.Business.A, abi.encode(startDate, expireDate));
+        token = PointToken(factory.deployPointToken("Points", "PTS"));
+        token.configureBusiness(IPointToken.Business.A, abi.encode(startDate, expireDate));
         token.mint(holder, 1000, keccak256("fixture-issue"));
     }
 
@@ -40,12 +40,12 @@ contract NewPointFactoryTest is Test {
     }
 
     function test_IdentityStartsEmptyAndDraft() public {
-        NewPointToken draft = NewPointToken(factory.deployPointToken("Draft", "DFT"));
+        PointToken draft = PointToken(factory.deployPointToken("Draft", "DFT"));
         assertEq(draft.owner(), address(this));
-        assertEq(uint256(draft.state()), uint256(INewPointToken.State.Draft));
-        assertEq(uint256(draft.business()), uint256(INewPointToken.Business.None));
+        assertEq(uint256(draft.state()), uint256(IPointToken.State.Draft));
+        assertEq(uint256(draft.business()), uint256(IPointToken.Business.None));
         assertEq(draft.totalSupply(), 0);
-        vm.expectRevert(INewPointToken.NotConfigured.selector);
+        vm.expectRevert(IPointToken.NotConfigured.selector);
         draft.mint(holder, 1, keccak256("draft-issue"));
         draft.mintInventory(holder, 100, keccak256("draft-stock"));
         assertEq(draft.balanceOf(holder), 0);
@@ -55,17 +55,17 @@ contract NewPointFactoryTest is Test {
     }
 
     function test_InvalidConfigurationAndRecipientRollback() public {
-        NewPointToken draft = NewPointToken(factory.deployPointToken("Draft", "DFT"));
-        vm.expectRevert(INewPointToken.InvalidDateRange.selector);
-        draft.configureBusiness(INewPointToken.Business.A, abi.encode(expireDate, startDate));
-        vm.expectRevert(INewPointToken.InvalidDateRange.selector);
-        draft.configureBusiness(INewPointToken.Business.A, abi.encode(startDate, startDate));
-        vm.expectRevert(INewPointToken.PointExpired.selector);
-        draft.configureBusiness(INewPointToken.Business.A, abi.encode(0, block.timestamp));
-        assertEq(uint256(draft.state()), uint256(INewPointToken.State.Draft));
+        PointToken draft = PointToken(factory.deployPointToken("Draft", "DFT"));
+        vm.expectRevert(IPointToken.InvalidDateRange.selector);
+        draft.configureBusiness(IPointToken.Business.A, abi.encode(expireDate, startDate));
+        vm.expectRevert(IPointToken.InvalidDateRange.selector);
+        draft.configureBusiness(IPointToken.Business.A, abi.encode(startDate, startDate));
+        vm.expectRevert(IPointToken.PointExpired.selector);
+        draft.configureBusiness(IPointToken.Business.A, abi.encode(0, block.timestamp));
+        assertEq(uint256(draft.state()), uint256(IPointToken.State.Draft));
         assertEq(draft.startDate(), 0);
         assertEq(draft.expireDate(), 0);
-        draft.configureBusiness(INewPointToken.Business.A, abi.encode(startDate, expireDate));
+        draft.configureBusiness(IPointToken.Business.A, abi.encode(startDate, expireDate));
         vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InvalidReceiver.selector, address(0)));
         draft.mint(address(0), 1, keccak256("retry-issue"));
         assertEq(draft.totalSupply(), 0);
@@ -83,10 +83,10 @@ contract NewPointFactoryTest is Test {
         assertEq(uint256(token.validityStatus()), 0);
         assertEq(token.balanceOf(holder), 1100);
         assertEq(token.availableBalanceOf(holder), 0);
-        vm.expectRevert(INewPointToken.PointNotStarted.selector);
+        vm.expectRevert(IPointToken.PointNotStarted.selector);
         vm.prank(holder);
         token.transfer(recipient, 1);
-        vm.expectRevert(INewPointToken.PointNotStarted.selector);
+        vm.expectRevert(IPointToken.PointNotStarted.selector);
         token.burn(holder, 1, keccak256("pending-burn"));
     }
 
@@ -118,14 +118,14 @@ contract NewPointFactoryTest is Test {
         assertEq(token.totalSupply(), 1000);
         assertEq(token.availableBalanceOf(holder), 0);
         assertEq(token.availableSupply(), 0);
-        vm.expectRevert(INewPointToken.PointExpired.selector);
+        vm.expectRevert(IPointToken.PointExpired.selector);
         token.mint(holder, 1, keccak256("expired-issue"));
-        vm.expectRevert(INewPointToken.PointExpired.selector);
+        vm.expectRevert(IPointToken.PointExpired.selector);
         token.burn(holder, 1, keccak256("expired-burn"));
-        vm.expectRevert(INewPointToken.PointExpired.selector);
+        vm.expectRevert(IPointToken.PointExpired.selector);
         vm.prank(holder);
         token.transfer(recipient, 1);
-        vm.expectRevert(INewPointToken.PointExpired.selector);
+        vm.expectRevert(IPointToken.PointExpired.selector);
         vm.prank(spender);
         token.transferFrom(holder, recipient, 1);
         assertEq(token.allowance(holder, spender), 500);
@@ -139,7 +139,7 @@ contract NewPointFactoryTest is Test {
         token.transfer(holder, 50);
         assertEq(token.balanceOf(holder), 1000);
         vm.warp(expireDate + 1);
-        vm.expectRevert(INewPointToken.PointExpired.selector);
+        vm.expectRevert(IPointToken.PointExpired.selector);
         vm.prank(holder);
         token.transfer(holder, 0);
     }
@@ -159,14 +159,14 @@ contract NewPointFactoryTest is Test {
         token.mintInventory(holder, 1, keccak256("denied-stock"));
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, holder));
         vm.prank(holder);
-        token.configureBusiness(INewPointToken.Business.B, abi.encode(INewPointToken.TransferPolicy.FEFO_ONLY));
+        token.configureBusiness(IPointToken.Business.B, abi.encode(IPointToken.TransferPolicy.FEFO_ONLY));
     }
 
     function testFuzz_DateRange(uint32 startOffset, uint32 duration) public {
         uint256 start = block.timestamp + uint256(startOffset);
         uint256 end = start + uint256(duration) + 1;
-        NewPointToken dated = NewPointToken(factory.deployPointToken("Fuzz", "FZZ"));
-        dated.configureBusiness(INewPointToken.Business.A, abi.encode(start, end));
+        PointToken dated = PointToken(factory.deployPointToken("Fuzz", "FZZ"));
+        dated.configureBusiness(IPointToken.Business.A, abi.encode(start, end));
         vm.warp(start);
         assertTrue(dated.isActive());
         vm.warp(end);
@@ -194,9 +194,9 @@ contract NewPointFactoryTest is Test {
 
     function test_ZeroCustomIssuanceAndBurnRejectWithoutLedgerChanges() public {
         vm.warp(startDate);
-        vm.expectRevert(INewPointToken.InvalidAmount.selector);
+        vm.expectRevert(IPointToken.InvalidAmount.selector);
         token.mint(holder, 0, keccak256("zero-issue"));
-        vm.expectRevert(INewPointToken.InvalidAmount.selector);
+        vm.expectRevert(IPointToken.InvalidAmount.selector);
         token.burn(holder, 0, keccak256("zero-burn"));
         assertEq(token.balanceOf(holder), 1000);
         assertEq(token.totalSupply(), 1000);
