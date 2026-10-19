@@ -12,7 +12,7 @@ import hardhatMocha from "@nomicfoundation/hardhat-mocha";
 import hardhatEthersChaiMatchers from "@nomicfoundation/hardhat-ethers-chai-matchers";
 import hardhatNetworkHelpers from "@nomicfoundation/hardhat-network-helpers";
 import { network } from "hardhat";
-dotenvConfig({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../.env") });
+dotenvConfig({ path: resolve(dirname(fileURLToPath(import.meta.url)), ".env") });
 
 const config: HardhatUserConfig = {
   plugins: [hardhatToolboxMochaEthersPlugin,
@@ -29,7 +29,7 @@ const config: HardhatUserConfig = {
       enabled: true,
     },
     etherscan: {
-      apiKey: "SCAN_API_KEY",
+      apiKey: configVariable("SCAN_API_KEY"),
     },
   },
   solidity: {

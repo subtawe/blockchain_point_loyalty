@@ -39,7 +39,7 @@ bower_components
 build/Release
 
 # Dependency directories
-node_modules/
+node_modules
 jspm_packages/
 
 # Snowpack dependency directory (https://snowpack.dev/)
@@ -74,6 +74,8 @@ web_modules/
 
 # dotenv environment variable files
 .env
+.env.*
+!.env.example
 .env.development.local
 .env.test.local
 .env.production.local
@@ -153,4 +155,9 @@ broadcast/
 
 # Misc
 .DS_Store
+
+# Local agent notes and editor-generated Hardhat configs
+.audit/
+.vscode_hardhat_config_*.ts
+.states/
 

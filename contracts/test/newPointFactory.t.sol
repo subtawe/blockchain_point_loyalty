@@ -4,6 +4,8 @@ pragma solidity ^0.8.28;
 import "forge-std/Test.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import "../newPointFactory.sol";
+import {INewPointToken} from "../interfaces/INewPointToken.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import "../newPointToken.sol";
 
 contract NewPointFactoryTest is Test {

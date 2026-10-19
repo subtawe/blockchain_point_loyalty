@@ -2,11 +2,11 @@
 
 This repository imports the latest application snapshot with a fresh history. Earlier source commits and local audit/editor files are not included. Deployment signing keys are not included. The DLT network resolves `PRIV_KEY` through Hardhat configuration, as the other signing networks do. Do not commit private keys or environment files.
 
-A **premium**, **upgradeable** loyalty‑point system built on Solidity 0.8.28. The repository demonstrates:
+An upgradeable loyalty-point system built on Solidity 0.8.28. The repository contains:
 
 -   **UpgradablePointFactory** deploys empty `NewPointToken` identities through an atomically initialized UUPS proxy.
 -   **NewPointToken** implements Point Loyalty v3 with one-time business configuration, escrow-backed inventory, and separate customer ledger and available balances.
--   **PointToken / PointTokenFactory** – the legacy block-based ERC7818 contracts.
+-   **NewPointTokenFactory** deploys the same identities without a proxy. Both concrete contracts inherit their implementations from abstract base contracts.
 -   Solidity and TypeScript tests run through **Hardhat**, plus **Ignition** deployment scripts.
 -   Example upgrade path to a `V2` implementation (`UpgradablePointFactoryV2`).
 
@@ -14,6 +14,7 @@ A **premium**, **upgradeable** loyalty‑point system built on Solidity 0.8.28. 
 
 -   [Prerequisites](#prerequisites)
 -   [Setup](#setup)
+-   [Configuration](#configuration)
 -   [Build & Compile](#build--compile)
 -   [Testing](#testing)
 -   [Deployment](#deployment)
@@ -23,7 +24,7 @@ A **premium**, **upgradeable** loyalty‑point system built on Solidity 0.8.28. 
 
 ## Prerequisites
 
--   **Node.js** on a maintained even-major LTS release supported by Hardhat, such as Node 22.13.0 or later in the 22.x line. Node 25 is not supported.
+-   **Node.js 26.12.0**. `.nvmrc` pins this version and `package.json` requires `>=26.12.0 <27`. Hardhat does not support odd-numbered major versions such as Node 25.
 -   **npm** (or **yarn**).
 -   **Foundry** (optional – for Forge tests).
 -   **Git**.
@@ -35,9 +36,47 @@ A **premium**, **upgradeable** loyalty‑point system built on Solidity 0.8.28. 
 git clone https://github.com/subtawe/blockchain_point_loyalty.git
 cd blockchain_point_loyalty
 
+# Select the pinned runtime if you use nvm
+nvm install
+nvm use
+
 # Install dependencies
 npm install
 ```
+
+If you do not use nvm, install Node.js 26.12.0 directly and run `node --version` to confirm it prints `v26.12.0` before you install dependencies.
+
+## Configuration
+
+Compiling and testing on the default `hardhatMainnet` network need no configuration. Deploying to a real network needs these variables:
+
+| Variable | Used by | Value |
+| --- | --- | --- |
+| `PRIV_KEY` | `dlt`, `amoy`, `sepolia`, `loaffinity` | Deployer private key |
+| `SEPOLIA_RPC_URL` | `sepolia` | RPC endpoint URL |
+| `SCAN_API_KEY` | `npx hardhat verify` | Etherscan API key |
+
+Hardhat reads a variable only when the command you run uses it. If a variable is missing, Hardhat stops with error `HHE7` and names the variable.
+
+Set the variables with either of these methods.
+
+**Encrypted keystore (recommended).** Hardhat prompts for each value and stores it encrypted outside the repository. Run `npx hardhat keystore path` to see where.
+
+```bash
+npx hardhat keystore set PRIV_KEY
+npx hardhat keystore set SEPOLIA_RPC_URL
+npx hardhat keystore set SCAN_API_KEY
+```
+
+**`.env` file.** Create `.env` in the repository root. `hardhat.config.ts` loads it, and Git ignores it. Use a dedicated deployer wallet, never a personal one.
+
+```dotenv
+PRIV_KEY=0xYOUR_PRIVATE_KEY
+SEPOLIA_RPC_URL=https://YOUR_RPC_ENDPOINT
+SCAN_API_KEY=YOUR_API_KEY
+```
+
+You can also export the variables in your shell for a single run, for example `PRIV_KEY=0x... npx hardhat run scripts/deploy.ts --network dlt`.
 
 ## Build & Compile
 
@@ -178,7 +217,11 @@ The TypeScript test `test/UpgradablePointFactory.ts` demonstrates this flow and 
 blockchain_point-loyalty/
 ├─ contracts/
 │   ├─ UpgradablePointFactory.sol      # UUPS factory
-│   ├─ newPointToken.sol               # V3 business-configured ERC20 points
+│   ├─ newPointToken.sol               # Concrete V3 token
+│   ├─ newPointFactory.sol             # Concrete standalone factory
+│   ├─ base/
+│   │   ├─ NewPointTokenBase.sol       # V3 business and ERC20 implementation
+│   │   └─ NewPointTokenFactoryBase.sol # Standalone factory implementation
 │   ├─ AppProxy.sol                    # ERC1967Proxy wrapper for Ignition
 │   └─ test/                          # Solidity test contracts (Forge)
 ├─ test/                              # TypeScript test suites (Hardhat)
@@ -189,3 +232,7 @@ blockchain_point-loyalty/
 ├─ .gitignore                         # Updated with Hardhat & Foundry ignores
 └─ README.md                          # This file
 ```
+
+`NewPointToken` and `NewPointTokenFactory` keep their existing constructor arguments and ABI. Their abstract bases cannot be deployed directly. `INewPointToken` declares the shared enums, structs, events, and errors. `UpgradablePointFactory` keeps its own initializer, ownership, registry storage, and upgrade authorization.
+
+This branch removes the legacy `PointToken` and `PointTokenFactory` contracts, their deployment scripts and tests, and the unused ERC7818 epoch implementation. Existing on-chain deployments are unaffected. The design documents describe epoch behavior from earlier source versions.

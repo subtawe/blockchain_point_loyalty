@@ -89,6 +89,8 @@ The remainder records the earlier shared-date-only v2 design and its validation 
 
 ## 2. สิ่งที่พบจากโค้ดก่อน implementation
 
+ตารางนี้บันทึกโค้ดรุ่นก่อนหน้า ปัจจุบันลบชุด PointToken/PointTokenFactory และ ERC7818 ที่เลิกใช้แล้ว ส่วน implementation ของ NewPointToken อยู่ใน `contracts/base/NewPointTokenBase.sol`.
+
 | Source | พฤติกรรมปัจจุบัน / ผลต่อ design |
 |---|---|
 | `contracts/newPointToken.sol:17` | ตั้งต้น window ด้วย block.timestamp ณ deploy และ secondsPerEpoch/windowSize โดย safe=false ไม่ได้รับ startDate/expireDate |
@@ -189,7 +191,7 @@ Validation ของ DTO ใช้ required + integer + range ที่ API ร�
 - เพิ่ม event แยก `DatedTokenDeployed(tokenAddress, name, symbol, deployer, initAmount, to, startDate, expireDate)` ให้ adapter/indexer ระบุรุ่นและวันที่ได้จาก receipt
 - ไม่เปลี่ยน schema event TokenDeployed เดิม; ไม่ emit สอง deployment events สำหรับ token เดียวโดยไม่มีนโยบาย deduplication
 - รุ่นใหม่ไม่ implement IERC7818 และไม่มี API epoch เพื่อไม่สร้าง semantics epoch จำลอง
-- PointToken/block-based และ NewPointToken/time-based รุ่นเดิมอยู่ใน legacy path
+- ข้อเสนอเดิมเก็บ PointToken/block-based และ NewPointToken/time-based ไว้ใน legacy path ปัจจุบันลบชุด legacy ออกจาก source แล้ว โดย deployment เดิมบน chain ไม่เปลี่ยนแปลง
 
 ## 6. Sequence ที่เสนอ
 
