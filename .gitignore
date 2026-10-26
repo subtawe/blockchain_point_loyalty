@@ -160,4 +160,5 @@ broadcast/
 .audit/
 .vscode_hardhat_config_*.ts
 .states/
+verification-results/
 
