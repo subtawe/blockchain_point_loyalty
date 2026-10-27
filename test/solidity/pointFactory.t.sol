@@ -75,6 +75,25 @@ contract PointFactoryTest is Test {
         assertEq(factory.deployedTokens(1), address(draft));
     }
 
+    function testFuzz_InvalidBusinessDPolicyPreservesDraftAndAllowsRetry(uint256 rawPolicy) public {
+        rawPolicy = bound(rawPolicy, 2, type(uint256).max);
+        PointToken draft = PointToken(factory.deployPointToken("Draft", "DFT"));
+        uint256[5] memory invalidPolicies = [uint256(2), 255, 256, type(uint256).max, rawPolicy];
+
+        for (uint256 i; i < invalidPolicies.length; ++i) {
+            vm.expectRevert();
+            draft.configureBusiness(IPointToken.Business.D, abi.encode(invalidPolicies[i]));
+            assertEq(uint256(draft.state()), uint256(IPointToken.State.Draft));
+            assertEq(uint256(draft.business()), uint256(IPointToken.Business.None));
+            assertEq(uint256(draft.transferPolicy()), uint256(IPointToken.TransferPolicy.FEFO_ONLY));
+        }
+
+        draft.configureBusiness(IPointToken.Business.D, abi.encode(IPointToken.TransferPolicy.USER_SELECT));
+        assertEq(uint256(draft.state()), uint256(IPointToken.State.Configured));
+        assertEq(uint256(draft.business()), uint256(IPointToken.Business.D));
+        assertEq(uint256(draft.transferPolicy()), uint256(IPointToken.TransferPolicy.USER_SELECT));
+    }
+
     function test_PendingMintAndSpendingGuard() public {
         token.mint(holder, 100, keccak256("pending-issue"));
         vm.warp(startDate - 1);
