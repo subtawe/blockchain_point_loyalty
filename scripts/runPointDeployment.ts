@@ -18,15 +18,15 @@ export async function finishPointSetup(
     token: PointToken, business: PointBusinessConfig, inventory: PointInventory, signerAddress: string,
     provider: Pick<Provider, "getBlock">,
 ): Promise<void> {
+    const address = await token.getAddress();
+    console.log("Token:", address);
     await configurePointBusiness(token, business, signerAddress, provider);
     await mintPointInventory(token, inventory, signerAddress);
     const account = inventory.kind === "mint" ? inventory.recipient : signerAddress;
-    const address = await token.getAddress();
     const [ledger, stock, available, escrow, supply, decimals, state] = await Promise.all([
         token.balanceOf(account), token.inventoryBalanceOf(account), token.availableBalanceOf(account),
         token.balanceOf(address), token.totalSupply(), token.decimals(), token.state(),
     ]);
-    console.log("Token:", address);
     console.log("Point state:", state === 0n ? "Draft" : "Configured");
     console.log("Business selection:", business.kind);
     console.log("Account:", account);
