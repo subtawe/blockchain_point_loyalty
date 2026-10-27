@@ -287,7 +287,9 @@ Factory implementation รักษา owner, deployedTokens และ __gap เ
 | 5. Local validation — ผ่าน | Compile, Hardhat Solidity/Mocha tests, fuzz, TypeScript typecheck และ simulated local deployment ผ่าน |
 | 6. Rollout — ยังไม่ทำ | ใช้ Factory address ใหม่; dry run chain เป้าหมายและตรวจ ABI/version/events/วันที่ก่อน deploy จริง |
 
-ผล validation หลัง review/refactor: Hardhat test ผ่าน Solidity 17 tests และ Mocha 51 tests รวม 68 tests; Solidity fuzz 2 tests รันอย่างละ 256 cases; tsc --noEmit ผ่าน และ deploy_proxy_and_token.ts ผ่านบน simulated local chain ไม่มี transaction บน external chain Host ใช้ Node v25.0.0 ซึ่ง Hardhat แจ้ง unsupported runtime; README แนะนำ Node 22 สำหรับ environment ใช้งานจริง Solidity tests และ fuzz รันผ่าน Hardhat ได้โดยไม่ต้องมี forge ใน PATH
+บันทึกผล validation ของรอบ review/refactor เดิม: Hardhat test ผ่าน Solidity 17 tests และ Mocha 51 tests รวม 68 tests; Solidity fuzz 2 tests รันอย่างละ 256 cases; tsc --noEmit ผ่าน และ deploy_proxy_and_token.ts ผ่านบน simulated local chain ไม่มี transaction บน external chain Host ในรอบนั้นใช้ Node.js 25.0.0 ซึ่ง Hardhat แจ้ง unsupported runtime ผลเหล่านี้เป็นบันทึกย้อนหลัง ไม่ใช่คำแนะนำ runtime ปัจจุบัน Solidity tests และ fuzz รันผ่าน Hardhat ได้โดยไม่ต้องมี forge ใน PATH
+
+สำหรับการตรวจสอบปัจจุบัน ให้ใช้ Node.js 26.12.0 ตาม [`.nvmrc`](../.nvmrc) โดย [`package.json`](../package.json) กำหนดช่วงที่รองรับเป็น `>=26.12.0 <27` เลือก runtime ด้วย `nvm install` และ `nvm use` จาก root ของ repo แล้วตรวจว่า `node --version` แสดง `v26.12.0` ก่อนติดตั้ง dependencies หรือรัน verification
 
 ผล review และการแก้ไข:
 

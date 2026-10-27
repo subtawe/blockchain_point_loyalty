@@ -83,5 +83,5 @@ After a confirmed revert the operation record and all balances roll back. For a 
 - D has at most 90 live lots under these date rules. Authorized dust delivery can still increase gas cost. The accepted LOW design limitation is not a target-chain gas guarantee.
 - The exported ABI describes the reviewed source, not every previously deployed token. Deploy a new monthly token through the verified Factory build. Merely changing the ABI or upgrading a Factory cannot rewrite an existing token.
 - Factory version 3 alone is not a monthly capability check. Verify deployment identity and bytecode before release. Initialize proxies atomically.
-- Current verification used Node 25, which Hardhat does not support. Rerun on a supported runtime before release, and verify target-chain execution gas and backend receipt handling.
+- Before release, rerun verification with Node.js 26.12.0, pinned in [`.nvmrc`](../.nvmrc) and within the [`package.json`](../package.json) engines range `>=26.12.0 <27`. Verify target-chain execution gas and backend receipt handling.
 - This delivery guide does not perform deployment, migration, backend integration, or external transfers.
