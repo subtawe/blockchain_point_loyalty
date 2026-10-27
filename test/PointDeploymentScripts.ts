@@ -1,5 +1,7 @@
 import { expect } from "chai";
 import hre from "hardhat";
+import { mock } from "node:test";
+import { finishPointSetup } from "../scripts/runPointDeployment.js";
 import { readPointBusiness, readPointDates, readPointFactoryAddress, readPointInventory } from "../scripts/pointParameters.js";
 import {
     assertPointDatesCurrent, assertPointFactoryReady, configurePointBusiness, deployPointToken,
@@ -126,6 +128,29 @@ describe("Point deployment preflight and receipts", function () {
 
     const factoryKinds: ("standalone" | "upgradable")[] = ["standalone", "upgradable"];
     for (const kind of factoryKinds) {
+        it(`reports the confirmed ${kind} token address when configuration expires after deployment`, async function () {
+            const context = await networkHelpers.loadFixture(factoryFixture);
+            const { owner, startDate, expireDate } = context;
+            const factory = context[kind];
+            const address = await deployPointToken(factory, { name: "Recoverable", symbol: "RCV" });
+            const token = await ethers.getContractAt("PointToken", address);
+            await networkHelpers.time.increaseTo(expireDate);
+
+            const log = mock.method(console, "log", () => {});
+            try {
+                await expect(finishPointSetup(token, { kind: "A", startDate, expireDate },
+                    { kind: "none" }, owner.address, ethers.provider))
+                    .to.be.rejectedWith("after the latest chain timestamp");
+            } finally {
+                log.mock.restore();
+            }
+
+            expect(await ethers.provider.getCode(address)).not.to.equal("0x");
+            expect(await factory.getDeployedTokensCount()).to.equal(1n);
+            expect(await token.state()).to.equal(0n);
+            expect(log.mock.calls.map(call => call.arguments)).to.deep.equal([["Token:", address]]);
+        });
+
         it(`extracts an empty Draft from the ${kind} factory receipt`, async function () {
             const context = await networkHelpers.loadFixture(factoryFixture);
             const { owner, holder } = context;
@@ -153,6 +178,23 @@ describe("Point deployment preflight and receipts", function () {
                 .to.throw("event not found");
         });
     }
+
+    it("reports the token address once before the successful setup summary", async function () {
+        const { owner, standalone } = await networkHelpers.loadFixture(factoryFixture);
+        const address = await deployPointToken(standalone, { name: "Draft", symbol: "DFT" });
+        const token = await ethers.getContractAt("PointToken", address);
+        const log = mock.method(console, "log", () => {});
+        try {
+            await finishPointSetup(token, { kind: "Draft" }, { kind: "none" }, owner.address, ethers.provider);
+        } finally {
+            log.mock.restore();
+        }
+
+        const output = log.mock.calls.map(call => call.arguments);
+        expect(output[0]).to.deep.equal(["Token:", address]);
+        expect(output.filter(args => args[0] === "Token:")).to.have.length(1);
+        expect(output).to.deep.include(["Point state:", "Draft"]);
+    });
 
     it("deploys identity, configures A separately and mints escrow rather than customer balance", async function () {
         const { owner, holder, standalone, startDate, expireDate } = await networkHelpers.loadFixture(factoryFixture);
