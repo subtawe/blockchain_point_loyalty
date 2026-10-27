@@ -3,10 +3,10 @@ pragma solidity ^0.8.28;
 
 import "forge-std/Test.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
-import "../pointFactory.sol";
-import {IPointToken} from "../interfaces/IPointToken.sol";
+import "../../contracts/pointFactory.sol";
+import {IPointToken} from "../../contracts/interfaces/IPointToken.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import "../pointToken.sol";
+import "../../contracts/pointToken.sol";
 
 contract PointFactoryTest is Test {
     PointTokenFactory public factory;

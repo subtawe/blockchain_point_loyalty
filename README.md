@@ -26,7 +26,7 @@ An upgradeable loyalty-point system built on Solidity 0.8.28. The repository con
 
 -   **Node.js 26.12.0**. `.nvmrc` pins this version and `package.json` requires `>=26.12.0 <27`. Hardhat does not support odd-numbered major versions such as Node 25.
 -   **npm** (or **yarn**).
--   **Foundry** (optional – for Forge tests).
+-   **Foundry** (required for Forge tests and `npm run test:all`, optional for `npm test`).
 -   **Git**.
 
 ## Setup
@@ -89,17 +89,28 @@ The compilation uses the optimizer with 200 runs (see `hardhat.config.ts`).
 
 ## Testing
 
-### Hardhat (TypeScript) tests
+### Run Solidity and TypeScript tests with Hardhat
 ```bash
-npx hardhat test
+npm test
 ```
-This runs both the Solidity tests (including fuzz tests) and the Mocha/Chai tests.
+This runs the Solidity tests in `test/solidity/`, including fuzz tests, and the Mocha/Chai tests in `test/typescript/`.
 
-### Foundry (Forge) tests
+Test-only Solidity helpers live in `test/solidity/helpers/`. Hardhat compiles these helpers alongside `contracts/` so TypeScript tests can deploy them by contract name.
+
+### Run Solidity tests with Forge
 ```bash
+forge test
+
+# Run one Solidity suite
 forge test --match-contract PointFactoryTest
 ```
-> **Note:** Ensure `forge` is installed and available in your `$PATH`.
+Install the npm dependencies first and ensure `forge` is available in your `$PATH`. `foundry.toml` sets the source and test paths, uses the npm-installed OpenZeppelin and `forge-std` dependencies, and keeps Forge output and cache separate from Hardhat.
+
+### Run Hardhat followed by Forge
+```bash
+npm run test:all
+```
+This runs both languages through Hardhat, then runs the same Solidity suites through Forge. A failure in either stage makes the command fail.
 
 ## Deployment
 
@@ -209,7 +220,7 @@ npx hardhat run scripts/deploy.ts --network dlt
 2.  Call `upgradeToAndCall(address(newImpl), "0x")` on the proxy via the factory instance.
 3.  Verify the new functionality (e.g., `version()` returns `"v2"`).
 
-The TypeScript test `test/UpgradablePointFactory.ts` demonstrates this flow and checks owner, registry, token code, dates, and balances. The test implementation's `version() == "v2"` is an upgrade marker, not the Point deployment API version; `pointTokenVersion()` remains 3.
+The TypeScript test `test/typescript/UpgradablePointFactory.ts` demonstrates this flow and checks owner, registry, token code, dates, and balances. The test implementation's `version() == "v2"` is an upgrade marker, not the Point deployment API version; `pointTokenVersion()` remains 3.
 
 ## Project Structure
 
@@ -222,12 +233,15 @@ blockchain_point-loyalty/
 │   ├─ base/
 │   │   ├─ PointTokenBase.sol       # V3 business and ERC20 implementation
 │   │   └─ PointTokenFactoryBase.sol # Standalone factory implementation
-│   ├─ AppProxy.sol                    # ERC1967Proxy wrapper for Ignition
-│   └─ test/                          # Solidity test contracts (Forge)
-├─ test/                              # TypeScript test suites (Hardhat)
+│   └─ AppProxy.sol                    # ERC1967Proxy wrapper for Ignition
+├─ test/
+│   ├─ solidity/                      # Solidity suites (Hardhat and Forge)
+│   │   └─ helpers/                   # Test-only contracts shared by both languages
+│   └─ typescript/                    # Mocha/Chai suites (Hardhat)
 ├─ ignition/                          # Ignition deployment modules
 │   └─ modules/UpgradablePointFactory.ts
 ├─ hardhat.config.ts                  # Hardhat configuration
+├─ foundry.toml                       # Forge paths, compiler, and npm remappings
 ├─ package.json
 ├─ .gitignore                         # Updated with Hardhat & Foundry ignores
 └─ README.md                          # This file

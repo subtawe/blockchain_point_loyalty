@@ -2,9 +2,9 @@
 pragma solidity ^0.8.28;
 
 import "forge-std/Test.sol";
-import "../UpgradablePointFactory.sol";
-import "../test/UpgradablePointFactoryV2.sol";
-import {IPointToken} from "../interfaces/IPointToken.sol";
+import "../../contracts/UpgradablePointFactory.sol";
+import "./helpers/UpgradablePointFactoryV2.sol";
+import {IPointToken} from "../../contracts/interfaces/IPointToken.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract UpgradablePointFactoryTest is Test {

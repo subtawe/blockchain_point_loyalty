@@ -15,6 +15,13 @@ import { network } from "hardhat";
 dotenvConfig({ path: resolve(dirname(fileURLToPath(import.meta.url)), ".env") });
 
 const config: HardhatUserConfig = {
+  paths: {
+    sources: ["contracts", "test/solidity/helpers"],
+    tests: {
+      solidity: "test/solidity",
+      mocha: "test/typescript",
+    },
+  },
   plugins: [hardhatToolboxMochaEthersPlugin,
     hardhatKeystore,
     hardhatVerify,

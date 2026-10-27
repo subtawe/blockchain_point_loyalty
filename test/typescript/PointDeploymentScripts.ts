@@ -1,12 +1,12 @@
 import { expect } from "chai";
 import hre from "hardhat";
 import { mock } from "node:test";
-import { finishPointSetup } from "../scripts/runPointDeployment.js";
-import { readPointBusiness, readPointDates, readPointFactoryAddress, readPointInventory } from "../scripts/pointParameters.js";
+import { finishPointSetup } from "../../scripts/runPointDeployment.js";
+import { readPointBusiness, readPointDates, readPointFactoryAddress, readPointInventory } from "../../scripts/pointParameters.js";
 import {
     assertPointDatesCurrent, assertPointFactoryReady, configurePointBusiness, deployPointToken,
     mintPointInventory, readDeployedPointAddress, readPointEvent,
-} from "../scripts/pointDeployment.js";
+} from "../../scripts/pointDeployment.js";
 
 const { ethers, networkHelpers } = await hre.network.connect();
 const validDates = { POINT_START_DATE: "1700000000", POINT_EXPIRE_DATE: "1800000000" };

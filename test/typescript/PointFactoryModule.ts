@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import hre from "hardhat";
-import PointFactoryModule from "../ignition/modules/pointFactory.js";
+import PointFactoryModule from "../../ignition/modules/pointFactory.js";
 
 describe("PointFactoryModule ownership", function () {
     it("assigns the configured owner and lets that owner deploy tokens", async function () {

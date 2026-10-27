@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.0 <0.9.0;
 
-import {ThaiCalendar} from "../utils/ThaiCalendar.sol";
+import {ThaiCalendar} from "../../../contracts/utils/ThaiCalendar.sol";
 
 /// @dev Test-only wrapper that exposes the internal calendar functions.
 contract ThaiCalendarHarness {

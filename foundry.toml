@@ -1,6 +1,6 @@
 [profile.default]
 src = "contracts"
-test = "contracts/test"
+test = "test/solidity"
 out = "out"
 cache_path = "cache/forge"
 libs = ["node_modules"]

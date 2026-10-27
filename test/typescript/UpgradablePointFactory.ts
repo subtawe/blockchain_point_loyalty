@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import hre from "hardhat";
-import { readDeployedPointAddress } from "../scripts/pointDeployment.js";
+import { readDeployedPointAddress } from "../../scripts/pointDeployment.js";
 
 const { ethers, networkHelpers } = await hre.network.connect();
 
