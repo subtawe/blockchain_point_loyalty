@@ -162,3 +162,6 @@ broadcast/
 .states/
 verification-results/
 
+# Graphify local outputs
+graphify-out/
+
