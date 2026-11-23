@@ -1,0 +1,148 @@
+import type { HardhatUserConfig } from "hardhat/config";
+import hardhatKeystore from "@nomicfoundation/hardhat-keystore";
+import hardhatToolboxMochaEthersPlugin from "@nomicfoundation/hardhat-toolbox-mocha-ethers";
+import { configVariable } from "hardhat/config";
+import hardhatVerify from "@nomicfoundation/hardhat-verify";
+import { config as dotenvConfig } from "dotenv";
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
+import hardhatEthers from "@nomicfoundation/hardhat-ethers";
+import hardhatTypechain from "@nomicfoundation/hardhat-typechain";
+import hardhatMocha from "@nomicfoundation/hardhat-mocha";
+import hardhatEthersChaiMatchers from "@nomicfoundation/hardhat-ethers-chai-matchers";
+import hardhatNetworkHelpers from "@nomicfoundation/hardhat-network-helpers";
+import { network } from "hardhat";
+dotenvConfig({ path: resolve(dirname(fileURLToPath(import.meta.url)), ".env") });
+
+const config: HardhatUserConfig = {
+  paths: {
+    sources: ["contracts", "test/solidity/helpers"],
+    tests: {
+      solidity: "test/solidity",
+      mocha: "test/typescript",
+    },
+  },
+  plugins: [hardhatToolboxMochaEthersPlugin,
+    hardhatKeystore,
+    hardhatVerify,
+    hardhatTypechain,
+    hardhatMocha,
+    hardhatEthers,
+    hardhatEthersChaiMatchers,
+    hardhatNetworkHelpers
+  ],
+  verify: {
+    blockscout: {
+      enabled: true,
+    },
+    etherscan: {
+      apiKey: configVariable("SCAN_API_KEY"),
+    },
+  },
+  solidity: {
+    profiles: {
+      default: {
+        version: "0.8.28",
+        settings: {
+          evmVersion: "paris",
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      production: {
+        version: "0.8.28",
+        settings: {
+          evmVersion: "paris",
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+    },
+  },
+  chainDescriptors: {
+    235: {
+      name: "loaffinity",
+      blockExplorers: {
+        // etherscan: {
+        //   name: "Loaffinity Explorer",
+        //   url: "http://localhost",
+        //   apiUrl: "http://localhost:4000/api",
+        // },
+        blockscout: {
+          name: "Loaffinity Explorer",
+          url: "http://localhost",
+          apiUrl: "http://localhost:4000/api",
+        },
+      },
+    },
+    116687680: {
+      name: "dlt",
+      blockExplorers: {
+        blockscout: {
+          name: "DLT Explorer",
+          url: "https://loafscoutevm-dev.adldigitalservice.com/",
+          apiUrl: "https://loafscoutevm-dev.adldigitalservice.com/api",
+        },
+      },
+    },
+
+    80002: {
+      name: "amoy",
+      blockExplorers: {
+        etherscan: {
+          name: "amoy",
+          url: "https://amoy.polygonscan.com",
+          apiUrl: "https://api.etherscan.io/v2/api",
+        },
+        // other explorers...
+      },
+    },
+  },
+  networks: {
+    hardhatMainnet: {
+      type: "edr-simulated",
+      chainType: "l1",
+      blockGasLimit: 30000000,
+    },
+    hardhatOp: {
+      type: "edr-simulated",
+      chainType: "op",
+      blockGasLimit: 30000000,
+    },
+    dlt: {
+      type: "http",
+      url: "https://dlp-rpc2-testnet.adldigitalservice.com",
+      // Resolve signing credentials at runtime instead of embedding a private key.
+      accounts: [configVariable("PRIV_KEY")],
+      chainId: 116687680,
+      gasPrice: 0,
+    },
+    amoy: {
+      type: "http",
+      url: "https://rpc-amoy.polygon.technology/",
+      chainId: 80002,
+      // accounts: WALLET_PRIVATE_KEY ? [$WALLET_PRIVATE_KEY] : [],
+      accounts: [configVariable("PRIV_KEY")],
+    },
+    sepolia: {
+      type: "http",
+      chainType: "l1",
+      url: configVariable("SEPOLIA_RPC_URL"),
+      accounts: [configVariable("PRIV_KEY")],
+    },
+    loaffinity: {
+      type: "http",
+      chainId: 235,
+      chainType: "l1",
+      accounts: [configVariable("PRIV_KEY")],
+      url: 'http://localhost:8545',
+
+    },
+  },
+};
+
+export default config;
